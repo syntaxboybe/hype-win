@@ -1,4 +1,7 @@
-QT += core gui qml quick quickcontrols2 multimedia concurrent dbus svg
+QT += core gui qml quick quickcontrols2 multimedia concurrent svg
+unix:QT += dbus
+win32:QT += widgets
+win32:CONFIG += console
 # Like Qt's own modules, Hype never throws or catches. Without unwinding tables and with
 # link-time optimization, the installed binary is about a quarter smaller.
 CONFIG += c++17 release ltcg exceptions_off
@@ -12,8 +15,8 @@ SOURCES += src/syntax.cpp
 HEADERS += src/syntax.h
 SOURCES += src/pptx.cpp
 HEADERS += src/pptx.h
-LIBS += -lz -lwebpdemux -lwebp
-
+LIBS += -lz
+unix:LIBS += -lwebpdemux -lwebp
 SOURCES += src/animationexport.cpp
 HEADERS += src/animationexport.h
 

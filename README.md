@@ -263,3 +263,16 @@ HYPE_GUI_TESTS=1 QT_QPA_PLATFORMTHEME=generic QT_STYLE_OVERRIDE=Fusion \
   QT_QPA_PLATFORM="offscreen:configfile=$PWD/tests/fixtures/presenter-screens.json" \
   ./build/tests/hype-tests presenterViewUsesSeparateScreens
 ```
+
+### Windows
+
+The Windows port uses Qt's native file dialogs and the built-in Tokyo Night palette; Omarchy and D-Bus are not required. The Windows build is console-enabled so the CLI commands retain their documented output. Install Qt 6.9+, FFmpeg, and a C++17 MinGW toolchain, then run:
+
+```powershell
+.\bin\build-windows.ps1
+```
+
+The build script bundles the MinGW runtime beside `hype.exe`, so the deployed executable does not depend on a global MSYS2 `PATH`. The checkout includes `hype.cmd`; put the checkout directory on your user `PATH`, open a new PowerShell, and run `hype` to open the last presentation. Use `hype open .\examples\welcome.md` to open a specific file.
+`hype new` creates `.\presentation.md` in the current directory. Specify a path for a named file: `hype new .\talk.md --title "My Talk"`.
+
+Keep `ffmpeg.exe` and `ffprobe.exe` on `PATH` for video posters and PowerPoint export. `source-highlight` is optional; without it, code blocks remain readable but uncolored.

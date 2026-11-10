@@ -96,7 +96,7 @@ void AppTheme::reload() {
     QStringList paths{m_currentDirectory, theme, path};
     paths.append(windowFiles);
     QString ancestor = QFileInfo(m_currentDirectory).absolutePath();
-    while (!QFileInfo::exists(ancestor) && ancestor != "/")
+    while (!QFileInfo::exists(ancestor) && !QDir(ancestor).isRoot())
         ancestor = QFileInfo(ancestor).absolutePath();
     paths.append(ancestor);
     paths.removeDuplicates();

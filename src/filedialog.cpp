@@ -1,4 +1,22 @@
 #include "filedialog.h"
+#ifdef Q_OS_WIN
+#include <QFileDialog>
+#include <QCoreApplication>
+QString FileDialog::choose(bool save, const QString &location, const QString &label,
+                           const QStringList &patterns, QString *error) {
+    const QString filter = label + " (" + patterns.join(' ') + ")";
+    const QString selected = save
+        ? QFileDialog::getSaveFileName(nullptr, "Save File", location, filter)
+        : QFileDialog::getOpenFileName(nullptr, "Open File", location, filter);
+    if (error)
+        error->clear();
+    return selected;
+}
+bool FileDialog::listen(const QString &) { return false; }
+void FileDialog::disconnectRequest() {}
+void FileDialog::response(uint, const QVariantMap &) {}
+bool FileDialog::eventFilter(QObject *, QEvent *) { return false; }
+#else
 #include <QCoreApplication>
 #include <QDBusArgument>
 #include <QDBusConnection>
@@ -54,7 +72,6 @@ QString FileDialog::choose(bool save, const QString &location, const QString &la
                         {"filters", QVariant::fromValue(Filters{filter})},
                         {"current_filter", QVariant::fromValue(filter)}};
     if (save) options.insert("current_name", QFileInfo(location).fileName());
-    // Subscribe before sending: a fast response may arrive before the method reply.
     if (!bus.isConnected() || !dialog.listen("/org/freedesktop/portal/desktop/request/" + sender + "/" + token)) {
         *error = "Could not connect to the desktop file chooser.";
         return {};
@@ -85,8 +102,6 @@ QString FileDialog::choose(bool save, const QString &location, const QString &la
         }
     });
     connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit, &dialog.m_loop, &QEventLoop::quit);
-    // The chooser lives in another process. Preserve modal behavior in our own
-    // windows, so the selected slide/document cannot change during an import.
     QCoreApplication::instance()->installEventFilter(&dialog);
     if (!dialog.m_done) dialog.m_loop.exec();
     *error = dialog.m_error;
@@ -127,3 +142,4 @@ bool FileDialog::eventFilter(QObject *, QEvent *event) {
         return false;
     }
 }
+#endif

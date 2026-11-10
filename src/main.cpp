@@ -2,11 +2,19 @@
 #include "cli.h"
 #include "deck.h"
 #include "renderer.h"
+#ifdef Q_OS_WIN
+#include <QApplication>
+using HypeApplication = QApplication;
+#else
 #include <QGuiApplication>
-#include <QCommandLineParser>
+using HypeApplication = QGuiApplication;
+#endif
+#ifdef Q_OS_UNIX
 #include <QDBusConnection>
 #include <QDBusMessage>
 #include <QDBusVariant>
+#endif
+#include <QCommandLineParser>
 #include <QFont>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -16,8 +24,7 @@
 #include <QQuickStyle>
 #include <QQuickWindow>
 #include <QScopeGuard>
-#include <QTimer>
-#include <cstdio>
+#ifdef Q_OS_UNIX
 // The desktop's interface font, e.g. "Adwaita Sans 11", which the gtk3 platform
 // theme used to supply. Without a settings portal Qt's default font stays.
 static void adoptDesktopFont() {
@@ -34,10 +41,20 @@ static void adoptDesktopFont() {
     font.setPointSizeF(size);
     QGuiApplication::setFont(font);
 }
+#else
+static void adoptDesktopFont() {}
+#endif
 int main(int argc, char **argv) {
     // Hype themes itself. Qt's gtk3 platform theme only adds a use-after-free
     // inside GTK when the desktop theme changes under a running editor.
+#ifdef Q_OS_UNIX
     qputenv("QT_QPA_PLATFORMTHEME", "generic");
+#endif
+    // Software rendering avoids D3D initialization failures on older Windows drivers.
+#ifdef Q_OS_WIN
+    if (!qEnvironmentVariableIsSet("QT_QUICK_BACKEND"))
+        qputenv("QT_QUICK_BACKEND", "software");
+#endif
     // Commands, exports and help draw no window, so they must not need a display,
     // even where the desktop exports QT_QPA_PLATFORM=wayland.
     // Bare hype prints help, as a command line tool should; launchers say hype open.
@@ -51,7 +68,7 @@ int main(int argc, char **argv) {
     }
     if (windowless)
         qputenv("QT_QPA_PLATFORM", "offscreen");
-    QGuiApplication app(argc, argv);
+    HypeApplication app(argc, argv);
     app.setApplicationName("hype");
     app.setApplicationVersion("0.6.0");
     app.setDesktopFileName(qEnvironmentVariable("HYPE_DESKTOP_FILE", "hype"));

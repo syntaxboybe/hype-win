@@ -36,7 +36,9 @@
 #include <QThreadPool>
 #include <QtConcurrentRun>
 #include <atomic>
+#ifdef Q_OS_LINUX
 #include <malloc.h>
+#endif
 #include <cerrno>
 #include <climits>
 #include <csignal>
@@ -544,7 +546,12 @@ void Deck::chooseFont(const QString &family) {
     const QString header = setScalar(m_parsed.header, "font", family);
     replaceHeader(header);
 }
-QStringList Deck::themeNames() const { return m_themes.keys(); }
+QStringList Deck::themeNames() const {
+    auto names = m_themes.keys();
+    if (!names.contains("tokyo-night"))
+        names.prepend("tokyo-night");
+    return names;
+}
 QString Deck::themeName() const { return scalar(m_parsed.header, "theme", "tokyo-night"); }
 QVariantMap Deck::palette() const {
     if (!m_paletteCache.isEmpty() && m_paletteHeader == m_parsed.header)
@@ -553,14 +560,16 @@ QVariantMap Deck::palette() const {
         {"background", "#1a1b26"}, {"foreground", "#c0caf5"}, {"accent", "#7aa2f7"},
         {"green", "#9ece6a"},      {"red", "#f7768e"},        {"yellow", "#e0af68"},
         {"magenta", "#bb9af7"},    {"cyan", "#7dcfff"},       {"dark_foreground", "#787c99"}};
-    QFile f(m_themes.value(themeName()));
-    if (f.open(QIODevice::ReadOnly)) {
-        QRegularExpression re("^([a-z_]+)\\s*=\\s*\"(#[0-9a-fA-F]{6})\"",
-                              QRegularExpression::MultilineOption);
-        auto matches = re.globalMatch(QString::fromUtf8(f.readAll()));
-        while (matches.hasNext()) {
-            auto m = matches.next();
-            colors[m.captured(1)] = m.captured(2);
+    if (const QString path = m_themes.value(themeName()); !path.isEmpty()) {
+        QFile f(path);
+        if (f.open(QIODevice::ReadOnly)) {
+            QRegularExpression re("^([a-z_]+)\\s*=\\s*\"(#[0-9a-fA-F]{6})\"",
+                                  QRegularExpression::MultilineOption);
+            auto matches = re.globalMatch(QString::fromUtf8(f.readAll()));
+            while (matches.hasNext()) {
+                auto m = matches.next();
+                colors[m.captured(1)] = m.captured(2);
+            }
         }
     }
     for (const auto &key : colors.keys()) {
@@ -581,14 +590,16 @@ void Deck::chooseTheme(const QString &name) {
     // Remove old palette before reading the newly selected installed theme.
     header.remove(
         QRegularExpression("^color_[a-z_]+:[^\\n]*\\n", QRegularExpression::MultilineOption));
-    QFile file(m_themes.value(name));
-    if (file.open(QIODevice::ReadOnly)) {
-        QRegularExpression re("^([a-z_]+)\\s*=\\s*\"(#[0-9a-fA-F]{6})\"",
-                              QRegularExpression::MultilineOption);
-        auto matches = re.globalMatch(QString::fromUtf8(file.readAll()));
-        while (matches.hasNext()) {
-            auto m = matches.next();
-            header = setScalar(header, "color_" + m.captured(1), m.captured(2));
+    if (const QString path = m_themes.value(name); !path.isEmpty()) {
+        QFile file(path);
+        if (file.open(QIODevice::ReadOnly)) {
+            QRegularExpression re("^([a-z_]+)\\s*=\\s*\"(#[0-9a-fA-F]{6})\"",
+                                  QRegularExpression::MultilineOption);
+            auto matches = re.globalMatch(QString::fromUtf8(file.readAll()));
+            while (matches.hasNext()) {
+                auto m = matches.next();
+                header = setScalar(header, "color_" + m.captured(1), m.captured(2));
+            }
         }
     }
     replaceHeader(header);
@@ -1286,11 +1297,13 @@ void Deck::exportDialog(const QString &format) {
     startExport(format, p);
 }
 static void stopExport(QProcess *process) {
-    if (process && process->processId() > 0) {
-        // Include any FFmpeg child processes in cancellation.
-        ::kill(-process->processId(), SIGKILL);
-        process->kill();
-    }
+    if (!process || process->processId() <= 0)
+        return;
+#ifdef Q_OS_UNIX
+    // Include any FFmpeg child processes in cancellation.
+    ::kill(-process->processId(), SIGKILL);
+#endif
+    process->kill();
 }
 Deck::~Deck() {
     if (m_exportProcess) {
@@ -1358,7 +1371,9 @@ void Deck::startExport(const QString &format, const QString &path) {
     emit exportChanged();
     auto *process = new QProcess(this);
     m_exportProcess = process;
+#ifdef Q_OS_UNIX
     process->setUnixProcessParameters(QProcess::UnixProcessFlag::CreateNewSession);
+#endif
     connect(process, &QProcess::started, this, [this, process] {
         if (m_exportCancelled) stopExport(process);
     });
@@ -1541,7 +1556,9 @@ bool Deck::renderImages(const QString &directory, int width, bool powerPoint) {
             emit exportAdvanced(portion * done / count(), QString("Exporting slide %1 of %2").arg(qMin<qsizetype>(count(), done + 1)).arg(count()));
         }
         // Return the workers' freed canvases to the system before the encoder starts.
+#ifdef Q_OS_LINUX
         malloc_trim(0);
+#endif
     }
     QJsonArray slides;
     QHash<QString, QString> convertedVideos;

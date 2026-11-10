@@ -9,7 +9,9 @@
 #include <QProcess>
 #include <QScopeGuard>
 #include <memory>
+#ifndef HYPE_QT_WEBP_FALLBACK
 #include <webp/demux.h>
+#endif
 
 bool exportAnimation(const QString &source, const QString &base, const QVariantMap &palette,
                      const QString &output, int width, int *repeats, QString *error,
@@ -18,6 +20,7 @@ bool exportAnimation(const QString &source, const QString &base, const QVariantM
     QImageReader reader(media.path);
     int frames = reader.imageCount();
     *repeats = media.loop || reader.loopCount() < 0 ? -1 : reader.loopCount() + 1;
+#ifndef HYPE_QT_WEBP_FALLBACK
     QByteArray webpBytes;
     std::unique_ptr<WebPAnimDecoder, decltype(&WebPAnimDecoderDelete)> webp(nullptr,
                                                                             WebPAnimDecoderDelete);
@@ -41,7 +44,10 @@ bool exportAnimation(const QString &source, const QString &base, const QVariantM
         frames = int(info.frame_count);
         *repeats = media.loop || info.loop_count == 0 ? -1 : int(info.loop_count);
     }
+#endif
+#ifndef HYPE_QT_WEBP_FALLBACK
     int previousTimestamp = 0;
+#endif
     const QSize size(width, width * 9 / 16);
     QImage background(size, QImage::Format_RGB32);
     QImage overlay(size, QImage::Format_ARGB32_Premultiplied);
@@ -123,6 +129,7 @@ bool exportAnimation(const QString &source, const QString &base, const QVariantM
             progress(double(i) / frames);
         QImage frame;
         int delay;
+#ifndef HYPE_QT_WEBP_FALLBACK
         if (webp) {
             uint8_t *pixels = nullptr;
             int timestamp = 0;
@@ -134,7 +141,9 @@ bool exportAnimation(const QString &source, const QString &base, const QVariantM
                            QImage::Format_RGBA8888);
             delay = qMax(1, timestamp - previousTimestamp);
             previousTimestamp = timestamp;
-        } else {
+        } else
+#endif
+        {
             frame = reader.read();
             delay = qMax(1, reader.nextImageDelay());
         }

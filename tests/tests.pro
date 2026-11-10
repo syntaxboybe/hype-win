@@ -1,5 +1,6 @@
-QT += core gui qml quick quickcontrols2 multimedia widgets testlib pdf concurrent dbus svg
-CONFIG += c++17 testcase
+QT += core gui qml quick quickcontrols2 multimedia widgets testlib pdf concurrent svg
+unix:QT += dbus
+win32:DEFINES += HYPE_QT_WEBP_FALLBACK
 TEMPLATE = app
 TARGET = hype-tests
 INCLUDEPATH += ../src
@@ -11,7 +12,8 @@ SOURCES += ../src/syntax.cpp
 HEADERS += ../src/syntax.h
 SOURCES += ../src/pptx.cpp
 HEADERS += ../src/pptx.h
-LIBS += -lz -lwebpdemux -lwebp
+LIBS += -lz
+unix:LIBS += -lwebpdemux -lwebp
 
 SOURCES += ../src/animationexport.cpp
 HEADERS += ../src/animationexport.h
