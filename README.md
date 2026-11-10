@@ -32,6 +32,22 @@ The script:
 
 The resulting application can run without adding the MSYS2 runtime directory to the global `PATH`.
 
+## Create the installer
+
+Install Inno Setup 6, then build the per-user installer:
+
+```powershell
+.\bin\package-windows.ps1 -QtBin 'C:\msys64\ucrt64\bin'
+```
+
+The installer is written to `dist\hype-setup.exe`. It installs Hype under the current user's local programs directory, creates a Start Menu shortcut, and optionally creates a desktop shortcut. It does not require administrator rights.
+
+To package an already-built release without rebuilding:
+
+```powershell
+.\bin\package-windows.ps1 -SkipBuild
+```
+
 ## Run Hype
 
 Run the executable directly:
