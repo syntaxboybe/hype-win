@@ -40,7 +40,7 @@ Install Inno Setup 6, then build the per-user installer:
 .\bin\package-windows.ps1 -QtBin 'C:\msys64\ucrt64\bin'
 ```
 
-The installer is written to `dist\hype-setup.exe`. It installs Hype under the current user's local programs directory, creates a Start Menu shortcut, and optionally creates a desktop shortcut. It does not require administrator rights.
+The installer is written to `dist\hype-setup.exe`. It installs Hype under the current user's local programs directory, registers `hype.exe` with Windows App Paths, creates a Start Menu shortcut, and optionally creates a desktop shortcut or adds Hype to Markdown files' **Open with** list. It does not require administrator rights.
 
 To package an already-built release without rebuilding:
 
