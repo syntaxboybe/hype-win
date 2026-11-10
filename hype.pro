@@ -2,6 +2,7 @@ QT += core gui qml quick quickcontrols2 multimedia concurrent svg
 unix:QT += dbus
 win32:QT += widgets
 win32:CONFIG += console
+win32:RC_FILE = installer/hype.rc
 # Like Qt's own modules, Hype never throws or catches. Without unwinding tables and with
 # link-time optimization, the installed binary is about a quarter smaller.
 CONFIG += c++17 release ltcg exceptions_off
