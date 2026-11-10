@@ -1,6 +1,7 @@
 #define AppName "Hype"
 #define AppVersion "0.6.0"
 #define AppPublisher "Hype Windows"
+#define IconFile "hype.ico"
 #define SourceDir "..\build\release"
 
 
@@ -11,6 +12,7 @@ AppVersion={#AppVersion}
 AppPublisher={#AppPublisher}
 AppPublisherURL=https://github.com/syntaxboybe/hype-win
 AppSupportURL=https://github.com/syntaxboybe/hype-win/issues
+SetupIconFile={#IconFile}
 VersionInfoVersion={#AppVersion}.0
 VersionInfoProductVersion={#AppVersion}
 VersionInfoProductName={#AppName}

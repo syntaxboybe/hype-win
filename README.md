@@ -40,7 +40,7 @@ Install Inno Setup 6, then build the per-user installer:
 .\bin\package-windows.ps1 -QtBin 'C:\msys64\ucrt64\bin'
 ```
 
-The installer is written to `dist\hype-setup.exe`. It installs Hype under the current user's local programs directory, registers `hype.exe` with Windows App Paths, creates a Start Menu shortcut, and optionally creates a desktop shortcut or adds Hype to Markdown files' **Open with** list. It does not require administrator rights.
+The installer is written to `dist\hype-setup.exe`. It installs Hype under the current user's local programs directory with the native Hype app icon, registers `hype.exe` with Windows App Paths, creates a Start Menu shortcut, and optionally creates a desktop shortcut or adds Hype to Markdown files' **Open with** list. It does not require administrator rights.
 
 To package an already-built release without rebuilding:
 
@@ -342,6 +342,10 @@ The main Windows files are:
 - `src\main.cpp`: Windows application startup and Qt platform setup;
 - `src\filedialog.cpp`: native Windows file dialogs;
 - `bin\build-windows.ps1`: build and deployment;
+- `bin\package-windows.ps1`: installer packaging;
+- `installer\hype.iss`: Inno Setup definition and Windows shell integration;
+- `installer\generate-icon.ps1`: native multi-size app icon generation;
+- `installer\hype.rc`: embedded Windows executable icon resource;
 - `hype.cmd`: PowerShell and Command Prompt launcher;
 - `hype.pro`: Qt project configuration.
 

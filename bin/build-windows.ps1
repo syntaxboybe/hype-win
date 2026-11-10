@@ -40,6 +40,12 @@ if (-not $make) {
     throw 'No mingw32-make.exe or nmake.exe was found on PATH.'
 }
 
+$iconScript = Join-Path $root 'installer/generate-icon.ps1'
+if (-not (Test-Path $iconScript)) { throw "Icon generator was not found: $iconScript" }
+& $iconScript
+if (-not (Test-Path (Join-Path $root 'installer/hype.ico'))) {
+    throw 'Icon generation did not produce installer/hype.ico.'
+}
 New-Item -ItemType Directory -Force $build | Out-Null
 Push-Location $build
 try {
