@@ -32,6 +32,8 @@ The script:
 
 The resulting application can run without adding the MSYS2 runtime directory to the global `PATH`.
 
+GUI launches detach from the console subsystem, so opening Hype from a shortcut does not leave a black console window beside the editor. Display-free commands continue to print their output in PowerShell.
+
 ## Create the installer
 
 Install Inno Setup 6, then build the per-user installer:

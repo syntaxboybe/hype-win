@@ -9,6 +9,9 @@ using HypeApplication = QApplication;
 #include <QGuiApplication>
 using HypeApplication = QGuiApplication;
 #endif
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
 #ifdef Q_OS_UNIX
 #include <QDBusConnection>
 #include <QDBusMessage>
@@ -59,6 +62,12 @@ int main(int argc, char **argv) {
     // even where the desktop exports QT_QPA_PLATFORM=wayland.
     // Bare hype prints help, as a command line tool should; launchers say hype open.
     const bool command = argc == 1 || isCliCommand(argv[1]);
+#ifdef Q_OS_WIN
+    // The console subsystem is required for CLI output, but GUI launches should not
+    // leave a console window beside the editor. Detaching preserves the caller's console.
+    if (!command)
+        FreeConsole();
+#endif
     bool windowless = command;
     for (int i = 1; i < argc; ++i) {
         const QByteArray argument(argv[i]);
